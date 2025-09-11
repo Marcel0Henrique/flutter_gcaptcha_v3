@@ -54,7 +54,7 @@ class RecaptchaHandler {
 
     final WebViewController controller = await _instance!._controllerCompleter.future;
 
-    // 6. Agora é seguro usar o controller para executar o JavaScript.
+
     controller.runJavaScript(
         '${AppConstants.executeCaptcha}("${_instance?._siteKey}", "$userAction")');
   }
