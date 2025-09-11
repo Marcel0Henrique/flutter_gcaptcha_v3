@@ -42,12 +42,21 @@ class _ReCaptchaWebViewState extends State<ReCaptchaWebView> {
           onMessageReceived: (JavaScriptMessage message) {
         widget.onTokenReceived(message.message);
         RecaptchaHandler.instance.updateToken(generatedToken: message.message);
-      });
+      })
+      // 1. Adicione o callback onPageFinished aqui
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) {
+            // 2. Chame a inicialização do reCAPTCHA aqui dentro.
+            //    Isso GARANTE que a página está pronta.
+            _initializeReadyJs(_webController);
+          },
+        ),
+      );
 
-    _webController.loadRequest(Uri.parse(widget.url)).then(
-        (value) => Future.delayed(const Duration(seconds: 3)).then((value) {
-              _initializeReadyJs(_webController);
-            }));
+    // 3. Remova o .then() e o Future.delayed daqui.
+    //    Apenas carregue a requisição.
+    _webController.loadRequest(Uri.parse(widget.url));
   }
 
   @override
