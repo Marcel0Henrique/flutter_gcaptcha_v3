@@ -3,7 +3,6 @@
 * @Company: GTEN SOFTWARE PVT.LTD.
 */
 
-
 import 'dart:async';
 
 import 'package:flutter_gcaptcha_v3/constants.dart';
@@ -14,10 +13,11 @@ class RecaptchaHandler {
 
   static RecaptchaHandler? _instance;
 
-
   WebViewController? _controller;
   final Completer<WebViewController> _controllerCompleter =
       Completer<WebViewController>();
+
+  final Completer<void> _recaptchaReadyCompleter = Completer<void>();
 
   late String _siteKey;
   String? _captchaToken;
@@ -27,6 +27,11 @@ class RecaptchaHandler {
 
   static RecaptchaHandler get instance => _instance ??= RecaptchaHandler._();
 
+  void recaptchaReady() {
+    if (!_recaptchaReadyCompleter.isCompleted) {
+      _recaptchaReadyCompleter.complete();
+    }
+  }
 
   updateController({required WebViewController controller}) {
     _instance?._controller = controller;
@@ -43,17 +48,16 @@ class RecaptchaHandler {
     _captchaToken = generatedToken;
   }
 
-  /// setups the data site key
   setupSiteKey({required String dataSiteKey}) =>
       _instance?._siteKey = dataSiteKey;
-
-  /// Executes and call the recaptcha API
 
   static Future<void> executeV3({String? action}) async {
     final String userAction = action ?? 'submit';
 
-    final WebViewController controller = await _instance!._controllerCompleter.future;
+    final WebViewController controller =
+        await _instance!._controllerCompleter.future;
 
+    await _instance!._recaptchaReadyCompleter.future;
 
     controller.runJavaScript(
         '${AppConstants.executeCaptcha}("${_instance?._siteKey}", "$userAction")');

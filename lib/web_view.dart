@@ -37,25 +37,24 @@ class _ReCaptchaWebViewState extends State<ReCaptchaWebView> {
       ..setBackgroundColor(widget.webViewColor ?? Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(AppConstants.readyJsName,
-          onMessageReceived: (JavaScriptMessage message) {})
+          onMessageReceived: (JavaScriptMessage message) {
+        if (message.message == 'recaptcha_ready') {
+          RecaptchaHandler.instance.recaptchaReady();
+        }
+      })
       ..addJavaScriptChannel(AppConstants.captchaJsName,
           onMessageReceived: (JavaScriptMessage message) {
         widget.onTokenReceived(message.message);
         RecaptchaHandler.instance.updateToken(generatedToken: message.message);
       })
-      // 1. Adicione o callback onPageFinished aqui
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (String url) {
-            // 2. Chame a inicialização do reCAPTCHA aqui dentro.
-            //    Isso GARANTE que a página está pronta.
             _initializeReadyJs(_webController);
           },
         ),
       );
 
-    // 3. Remova o .then() e o Future.delayed daqui.
-    //    Apenas carregue a requisição.
     _webController.loadRequest(Uri.parse(widget.url));
   }
 
